@@ -405,7 +405,7 @@ export default function CheckoutPage() {
                     </span>
                   </div>
                   <span className="text-[11px] font-bold text-[#0D9488] bg-[#2DD4BF]/20 px-2.5 py-0.5 rounded-full font-mono">
-                    EGP Cash
+                    {isRtl ? 'نقداً عند الاستلام' : 'EGP Cash'}
                   </span>
                 </div>
                 <p className="text-xs text-[#4A5553] pr-6">
@@ -473,7 +473,7 @@ export default function CheckoutPage() {
                 </div>
 
                 <div className="flex justify-between text-[#4A5553]">
-                  <span>{t('cart.shipping')} ({selectedZone.governorateEn})</span>
+                  <span>{t('cart.shipping')} ({isRtl ? selectedZone.governorateAr : selectedZone.governorateEn})</span>
                   <span className="font-mono font-semibold text-[#080A0A]">
                     {financials.shippingInPiasters === 0 ? (
                       <span className="text-[#0D9488] font-bold">{isRtl ? 'شحن مجاني' : 'Free Shipping'}</span>
