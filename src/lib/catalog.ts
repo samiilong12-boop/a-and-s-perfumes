@@ -216,3 +216,80 @@ export function getAllProductSlugs(): string[] {
   const products = loadCatalogProducts();
   return products.map((p) => p.slug || p.id).filter(Boolean);
 }
+
+/**
+ * Smart recommendation engine that finds complementary/similar fragrances
+ * based on fragrance family overlap, shared olfactory notes, gender accord, and popularity.
+ */
+export function getRelatedProducts(current: Product, catalog: Product[], max: number = 4): Product[] {
+  if (!current || !catalog || catalog.length <= 1) return [];
+
+  // Exclude current product and unpublished/archived ones
+  const candidates = catalog.filter(
+    (p) => p.id !== current.id && (p.slug || '') !== (current.slug || '') && p.isPublished !== false && !p.isArchived
+  );
+
+  const currentFamWords = (current.fragranceFamily || '')
+    .toLowerCase()
+    .split(/[\s&,/]+/)
+    .filter((w) => w.length > 2);
+  const currentNotes = new Set(
+    [...(current.topNotes || []), ...(current.heartNotes || []), ...(current.baseNotes || [])].map((n) =>
+      n.toLowerCase().trim()
+    )
+  );
+
+  const scored = candidates.map((p) => {
+    let score = 0;
+    const pFam = (p.fragranceFamily || '').toLowerCase();
+
+    // 1. Fragrance family overlap
+    for (const w of currentFamWords) {
+      if (pFam.includes(w)) {
+        score += 50;
+      }
+    }
+
+    // 2. Exact family match
+    if (current.fragranceFamily && p.fragranceFamily === current.fragranceFamily) {
+      score += 30;
+    }
+
+    // 3. Gender affinity
+    if (p.gender === current.gender) {
+      score += 25;
+    } else if (p.gender === 'UNISEX' || current.gender === 'UNISEX') {
+      score += 15;
+    }
+
+    // 4. Shared olfactory notes
+    const pNotes = [...(p.topNotes || []), ...(p.heartNotes || []), ...(p.baseNotes || [])];
+    for (const n of pNotes) {
+      if (currentNotes.has(n.toLowerCase().trim())) {
+        score += 10;
+      }
+    }
+
+    // 5. Bestseller
+    if (p.isBestseller) score += 5;
+
+    return { product: p, score };
+  });
+
+  scored.sort((a, b) => b.score - a.score);
+
+  const result = scored.slice(0, max).map((s) => s.product);
+
+  // Fill up to `max` if candidates exist
+  if (result.length < max) {
+    const existingIds = new Set(result.map((p) => p.id));
+    for (const p of candidates) {
+      if (!existingIds.has(p.id)) {
+        result.push(p);
+        if (result.length >= max) break;
+      }
+    }
+  }
+
+  return result;
+}

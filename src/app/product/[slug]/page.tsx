@@ -1,7 +1,7 @@
 import React from 'react';
 import { notFound } from 'next/navigation';
 import type { Metadata, ResolvingMetadata } from 'next';
-import { getProductBySlug, loadCatalogProducts, getAllProductSlugs, CATEGORY_REGISTRY } from '@/lib/catalog';
+import { getProductBySlug, loadCatalogProducts, getAllProductSlugs, getRelatedProducts, CATEGORY_REGISTRY } from '@/lib/catalog';
 import { ProductClientView } from '@/components/ProductClientView';
 import { prisma, isDatabaseConnected } from '@/lib/prisma';
 import { Product } from '@/types';
@@ -119,9 +119,7 @@ export default async function ProductDetailPage({ params }: PageProps) {
   }
 
   const allProducts = await getLiveCatalog();
-  const relatedProducts = allProducts
-    .filter((p) => p.id !== product.id && p.fragranceFamily === product.fragranceFamily)
-    .slice(0, 4);
+  const relatedProducts = getRelatedProducts(product, allProducts, 4);
 
   const defaultVariant = product.variants?.[0] || {
     id: `${product.id}-default`,

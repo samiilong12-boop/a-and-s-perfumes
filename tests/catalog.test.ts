@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { DEMO_PRODUCTS, SHIPPING_ZONES, FRAGRANCE_FAMILIES } from '../src/lib/data/products';
+import { getRelatedProducts } from '../src/lib/catalog';
 
 describe('Fragrance Catalog & Seeding Verification (Official Luxury Perfumes)', () => {
   it('contains at least 10 official luxury fragrance products', () => {
@@ -35,5 +36,15 @@ describe('Fragrance Catalog & Seeding Verification (Official Luxury Perfumes)', 
     expect(governorates).toContain('Giza');
     expect(governorates).toContain('Alexandria');
     expect(SHIPPING_ZONES.length).toBeGreaterThanOrEqual(7);
+  });
+
+  it('guarantees smart related products recommendation returns complementary perfumes without self-match', () => {
+    for (const prod of DEMO_PRODUCTS) {
+      const related = getRelatedProducts(prod, DEMO_PRODUCTS, 4);
+      expect(related.length).toBeGreaterThanOrEqual(3);
+      expect(related.length).toBeLessThanOrEqual(4);
+      expect(related.some((r) => r.id === prod.id)).toBe(false);
+      expect(related.some((r) => r.slug === prod.slug)).toBe(false);
+    }
   });
 });
