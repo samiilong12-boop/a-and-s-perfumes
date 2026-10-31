@@ -280,7 +280,8 @@ export const OFFICIAL_10_PERFUMES: Product[] = [
         "id": "ol-50",
         "sku": "AS-TF-OML-50",
         "volumeMl": 50,
-        "regularPriceEgp": 2150,
+        "regularPriceEgp": 400,
+        "regularPriceInPiasters": 40000,
         "costPriceEgp": 900,
         "stockQuantity": 30,
         "lowStockThreshold": 4
@@ -289,7 +290,8 @@ export const OFFICIAL_10_PERFUMES: Product[] = [
         "id": "ol-100",
         "sku": "AS-TF-OML-100",
         "volumeMl": 100,
-        "regularPriceEgp": 3250,
+        "regularPriceEgp": 800,
+        "regularPriceInPiasters": 80000,
         "costPriceEgp": 1350,
         "stockQuantity": 40,
         "lowStockThreshold": 4

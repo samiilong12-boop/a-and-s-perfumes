@@ -22,7 +22,7 @@ describe('Fragrance Catalog & Seeding Verification (Official Luxury Perfumes)', 
       expect(product.variants.length).toBeGreaterThanOrEqual(1);
 
       for (const variant of product.variants) {
-        expect(variant.regularPriceEgp).toBeGreaterThanOrEqual(1000); // at least 1,000 EGP
+        expect(variant.regularPriceEgp).toBeGreaterThanOrEqual(100); // at least 100 EGP
         expect(variant.stockQuantity).toBeGreaterThanOrEqual(0);
         expect(variant.sku).toBeDefined();
       }

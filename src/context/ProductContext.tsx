@@ -225,7 +225,7 @@ export function ProductProvider({ children }: { children: React.ReactNode }) {
   ) => {
     const updated = products.map((p) => {
       if (p.id !== id) return p;
-      const merged: Product = { ...p, ...updatedFields };
+      const merged: Product = { ...p, ...updatedFields, updatedAt: new Date().toISOString() };
 
       if (updatedFields.imageUrl) {
         merged.imageUrl = updatedFields.imageUrl;

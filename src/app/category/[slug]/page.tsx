@@ -6,9 +6,12 @@ import {
   getAllCategories,
   getCategoryBySlug,
   getProductsByCategory,
+  loadCatalogProducts,
 } from '@/lib/catalog';
 import { ProductCard } from '@/components/ProductCard';
 import { Sparkles, Compass, ShieldCheck, ArrowRight, Layers, Flame } from 'lucide-react';
+import { prisma, isDatabaseConnected } from '@/lib/prisma';
+import { Product } from '@/types';
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -19,9 +22,20 @@ const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://a-and-s.vercel.app
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
-export async function generateStaticParams() {
-  const categories = getAllCategories();
-  return categories.map((cat) => ({ slug: cat.slug }));
+async function getLiveCatalog(): Promise<Product[]> {
+  try {
+    const hasDb = await isDatabaseConnected();
+    if (hasDb) {
+      const setting = await prisma.storeSetting.findUnique({
+        where: { key: 'catalog_products' },
+      });
+      if (setting?.value) {
+        const list: Product[] = JSON.parse(setting.value);
+        if (Array.isArray(list) && list.length > 0) return list;
+      }
+    }
+  } catch {}
+  return loadCatalogProducts();
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
@@ -70,7 +84,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 export default async function CategoryPage({ params }: PageProps) {
   const { slug } = await params;
-  const result = getProductsByCategory(slug);
+  const liveCatalog = await getLiveCatalog();
+  const result = getProductsByCategory(slug, liveCatalog);
 
   if (!result) {
     notFound();

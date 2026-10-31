@@ -170,11 +170,14 @@ export function getProductBySlug(slugInput: string): Product | null {
 /**
  * Returns all products for a specific category slug
  */
-export function getProductsByCategory(categorySlug: string): { category: CategoryMeta; products: Product[] } | null {
+export function getProductsByCategory(
+  categorySlug: string,
+  customProducts?: Product[]
+): { category: CategoryMeta; products: Product[] } | null {
   const meta = CATEGORY_REGISTRY.find((c) => c.slug.toLowerCase() === categorySlug.toLowerCase());
   if (!meta) return null;
 
-  const all = loadCatalogProducts().filter((p) => p.isPublished !== false && !p.isArchived);
+  const all = (customProducts || loadCatalogProducts()).filter((p) => p.isPublished !== false && !p.isArchived);
   const matched = all.filter((p) => {
     const fam = (p.fragranceFamily || '').toLowerCase();
     const target = meta.family.toLowerCase();

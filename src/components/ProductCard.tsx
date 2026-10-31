@@ -26,10 +26,19 @@ export function ProductCard({ product: propProduct, onExpressOrder }: ProductCar
   const { isRtl } = useLanguage();
   const { getProductBySlug } = useProducts();
 
-  const product =
+  const contextProduct =
     (propProduct.slug && getProductBySlug(propProduct.slug)) ||
-    (propProduct.id && getProductBySlug(propProduct.id)) ||
-    propProduct;
+    (propProduct.id && getProductBySlug(propProduct.id));
+
+  // Determine authoritative product:
+  // Prefer contextProduct only if it has a newer updatedAt timestamp (from live client edit)
+  const product = React.useMemo(() => {
+    if (!contextProduct || !contextProduct.updatedAt) return propProduct;
+    if (!propProduct.updatedAt) return contextProduct;
+    const ctxTime = new Date(contextProduct.updatedAt).getTime();
+    const propTime = new Date(propProduct.updatedAt).getTime();
+    return ctxTime > propTime ? contextProduct : propProduct;
+  }, [contextProduct, propProduct]);
 
   const primaryImage =
     product.images?.find((img) => img.isPrimary)?.url ||

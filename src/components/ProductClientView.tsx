@@ -45,19 +45,27 @@ export function ProductClientView({ product: initialProduct, relatedProducts }: 
   const { addItem } = useCart();
   const { getProductBySlug } = useProducts();
 
-  // Subscribe to live product from ProductContext (reflects admin price edits & server sync in real time)
-  const liveProduct = getProductBySlug(initialProduct.slug || initialProduct.id) || initialProduct;
-  const product = liveProduct;
+  // Authoritative product selection:
+  // initialProduct comes directly from server DB query (always fresh on SSR & on-demand requests).
+  // Only override with contextProduct if the admin actively edited the product in this client session (contextProduct has a newer updatedAt timestamp).
+  const contextProduct = getProductBySlug(initialProduct.slug || initialProduct.id);
+  const isContextFresher = React.useMemo(() => {
+    if (!contextProduct || !contextProduct.updatedAt) return false;
+    if (!initialProduct.updatedAt) return true;
+    return new Date(contextProduct.updatedAt).getTime() > new Date(initialProduct.updatedAt).getTime();
+  }, [contextProduct, initialProduct]);
+
+  const product = isContextFresher && contextProduct ? contextProduct : initialProduct;
 
   const fallbackVariant = product.variants?.[0] || {
-    id: `${product.id}-var-100`,
+    id: `${product.id}-var-50`,
     productId: product.id,
-    sku: `RHQ-100ML`,
-    volumeMl: 100,
-    titleEn: '100ml Extrait De Parfum',
-    titleAr: '100 مل إكستري دو بارفان',
-    regularPriceInPiasters: 275000,
-    regularPriceEgp: 2750,
+    sku: `RHQ-50ML`,
+    volumeMl: 50,
+    titleEn: '50ml Extrait De Parfum',
+    titleAr: '50 مل إكستري دو بارفان',
+    regularPriceInPiasters: 40000,
+    regularPriceEgp: 400,
     stockQuantity: 20,
     lowStockThreshold: 5,
     isActive: true,

@@ -54,11 +54,6 @@ async function getLiveCatalog(): Promise<Product[]> {
   return loadCatalogProducts();
 }
 
-export async function generateStaticParams() {
-  const slugs = getAllProductSlugs();
-  return slugs.map((slug) => ({ slug }));
-}
-
 export async function generateMetadata(
   { params }: PageProps,
   parent: ResolvingMetadata

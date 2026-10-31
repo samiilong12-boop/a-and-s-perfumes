@@ -2,8 +2,13 @@ import React, { Suspense } from 'react';
 import type { Metadata } from 'next';
 import { loadCatalogProducts } from '@/lib/catalog';
 import { CatalogClientView } from '@/components/CatalogClientView';
+import { prisma, isDatabaseConnected } from '@/lib/prisma';
+import { Product } from '@/types';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://a-and-s.vercel.app';
+
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 export const metadata: Metadata = {
   title: 'كتالوج العطور الملكية | تشكيلة عطور دار رَحِيقْ الكاملة',
@@ -30,8 +35,25 @@ export const metadata: Metadata = {
   },
 };
 
-export default function CatalogPage() {
-  const initialProducts = loadCatalogProducts().filter((p) => p.isPublished !== false && !p.isArchived);
+async function getLiveCatalog(): Promise<Product[]> {
+  try {
+    const hasDb = await isDatabaseConnected();
+    if (hasDb) {
+      const setting = await prisma.storeSetting.findUnique({
+        where: { key: 'catalog_products' },
+      });
+      if (setting?.value) {
+        const list: Product[] = JSON.parse(setting.value);
+        if (Array.isArray(list) && list.length > 0) return list;
+      }
+    }
+  } catch {}
+  return loadCatalogProducts();
+}
+
+export default async function CatalogPage() {
+  const allProducts = await getLiveCatalog();
+  const initialProducts = allProducts.filter((p) => p.isPublished !== false && !p.isArchived);
 
   const collectionJsonLd = {
     '@context': 'https://schema.org',
